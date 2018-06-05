@@ -2,12 +2,15 @@ function main()
 
     clear all; close all; clc;
 
-    readDirectory = '../../../mnt/LinSigSeedN5fix3/';
-    writeDirectory = '../../DataProcessing/Plots/LinSigSeedN5fix3/';
+    readDirectory = '../../mnt/5partIpopt/';
+    writeDirectory = 'Plots/5partAnalysis/';
 
     Durations = {'1.0','2.0','2.5','3.0','4.0'};
     
+    % 837422_5 , 837529_20 , 837534_18 , 837539_33 , 837549_7
+    
     for i = 1:length(Durations)
+%         findBestSolutions(readDirectory);
         expNData = dlmread( [readDirectory 'ExpectationN_extendedT' Durations{i} '.txt'] );
         rampData = dlmread( [readDirectory 'BHrampInitialFinal_extendedT' Durations{i} '.txt'] );
         
@@ -19,6 +22,34 @@ function main()
         print(fig,figname,'-dpdf','-bestfit')
     end
    
+end
+
+function findBestSolutions(readDirectory)
+ 
+    % extract data
+    [Tlist, Flist, fnlist] = extractFinalFidelity(readDirectory);
+    TFdata = [Tlist' , Flist'];
+    
+    % sort data with respect to T
+    sortedData = sortrows(TFdata,1);
+    
+    
+    % find filename corresponding to best F for each T
+    [uv,idy,~] = unique(sortedData(:,1));
+    nu = numel(uv);
+    
+    idy = [idy ; size(sortedData,1)+1];
+    
+    for i = 1:nu
+        % group F for given T in x
+        x = sortedData(idy(i):idy(i+1)-1,2);
+        [maxF,~]     = max(x);
+       
+        % find index of filename of highest fidelity
+        [~,index]    = ismember([uv(i) , maxF],TFdata,'rows');
+        
+        disp(['Best solution for T = ' num2str(uv(i)) ' has ID ' erase(fnlist{index},readDirectory)])
+    end   
 end
 
 function fig = makeExtendedRampPlot(expNData,controlData)
@@ -68,15 +99,16 @@ function fig = makeExtendedRampPlot(expNData,controlData)
     x1 = x(1:mid-offset,:);
     x2 = x(mid+offset:end,:);
 
-    
+    cmin = 0.9;
+    cmax = 1.1;
     custommap = [x1 ; x(mid,:) ; x2 ];
     colormap(custommap)
 
-    cticklab    = 0.8:0.1:1.2;
+    cticklab    = cmin:0.1:cmax;
    
     
     scaledData  = symmetricLogScale(expN , 1);
-    scaledcaxis = symmetricLogScale([0.8 , 1.2] , 1);
+    scaledcaxis = symmetricLogScale([cmin , cmax] , 1);
     scaledctick = symmetricLogScale(cticklab , 1);
     
     imagesc('XData',time,'YData',ni,'CData',scaledData');
@@ -101,7 +133,7 @@ function fig = makeExtendedRampPlot(expNData,controlData)
     p1(1) = plot(time,uf,'k-','LineWidth',2);
     p1(2) = plot(time,ui,'k--','LineWidth',2);
     
-    xlabel('Time')
+    xlabel('Time $t$ $[ J^{-1}]$')
     ylabel('Control $U$')
 
     xlim([time(1) , time(end)])
@@ -135,7 +167,7 @@ function fig = makeExtendedRampPlot(expNData,controlData)
     hold on
     p2(1) = plot(time,(1-Ff),'-','Color',co(1,:),'LineWidth',2);
     p2(2) = plot(time,(1-Fi),'--','Color',co(1,:),'LineWidth',2);
-    ylabel('Infidelity')
+    ylabel('Infidelity $1-F$')
     set(gca,'YScale','log')
     plt = gca;
     plt.YAxis(2).Color = co(1,:);
