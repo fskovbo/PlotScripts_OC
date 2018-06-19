@@ -50,8 +50,6 @@ function fig = makeCompFidelityPlot(data,legendEntries)
         plot(T,1-algdata(:,4),'Linewidth',2,'Color',color);
     end
     
-    xlabel('Duration $T$ $[ J^{-1} ]$')
-    ylabel('Infidelity $1-F$')
     limsy=get(gca,'YLim');
     set(gca,'Ylim',[1e-4 0.8*1e-1]);
     yticks([1e-4 1e-3 1e-2])
@@ -67,6 +65,9 @@ function fig = makeCompFidelityPlot(data,legendEntries)
     subpos = get(sub(2), 'Position');
     set(sub(2), 'position', [subpos(1), subpos(2), subpos(3), subpos(4)*0.5] );
     
+    
+    xlabel('Duration $T$ $[ J^{-1} ]$','FontSize',12)
+    ylabel('$1-F$','FontSize',12)
     
     annotation(gcf,'textbox',...
     [0.122304084595696 0.873777279000283 0.0305186246418337 0.0547703180212016],...

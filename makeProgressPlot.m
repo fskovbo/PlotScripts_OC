@@ -1,4 +1,4 @@
-function fig = makeProgressPlot(data,legendEntries, maxprop)
+function p = makeProgressPlot(data,legendEntries, maxprop)
 
     %  ---- data format -----
     % Npropagatons (1) | median (1) | 25 perc (1) | 75 perc (1) | Npropagatons (2) | ...
@@ -11,8 +11,6 @@ function fig = makeProgressPlot(data,legendEntries, maxprop)
          0.3010    0.7450    0.9330
          0.6350    0.0780    0.1840];
     
-  
-    fig = figure;
     box on
     hold on
     
@@ -33,7 +31,7 @@ function fig = makeProgressPlot(data,legendEntries, maxprop)
         minval = min([minval, algdata(end,2)]);
     end
 
-    xlabel('Number of Time Evolutions')
+    xlabel('Nr. of Time Evolutions')
     ylabel('Cost $\mathcal{J}$')
     set(gca,'YScale','log')
     

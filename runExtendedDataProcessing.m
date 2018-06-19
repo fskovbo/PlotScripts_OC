@@ -134,7 +134,7 @@ function fig = makeExtendedRampPlot(expNData,controlData)
     p1(2) = plot(time,ui,'k--','LineWidth',2);
     
     xlabel('Time $t$ $[ J^{-1}]$')
-    ylabel('Control $U$')
+    ylabel('Control $U$ $[ J ]$')
 
     xlim([time(1) , time(end)])
     ylim([0 , 55])

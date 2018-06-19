@@ -1,24 +1,22 @@
 function main()
     clear all; close all; clc;
     
-    %%%% FIX
-    Mlist = {5:40 , 5:40};
-    prefixnum = [640480:640480+length(Mlist{1})-1; ...
-                 620717:620752                      ];
-%     Mlist = {5:40};
-%     prefixnum =  620717:620752;
-%     
-    for j = 1:size(prefixnum,1)
-        for i = 1:size(prefixnum,2)
-           prefix{j,i} = num2str(prefixnum(j,i)); 
-        end
-    end
+%     %%%% FIX
+%     Mlist = {5:40 , 5:40};
+%     prefixnum = [640480:640480+length(Mlist{1})-1; ...
+%                  620717:620752                      ];
+% %     Mlist = {5:40};
+% %     prefixnum =  620717:620752;
+% %     
+%     for j = 1:size(prefixnum,1)
+%         for i = 1:size(prefixnum,2)
+%            prefix{j,i} = num2str(prefixnum(j,i)); 
+%         end
+%     end
     
     %%%%%
     
-%     readDirs = {'../../mnt/LinSigSeedN5MSweep/'};
-    
-    readDirs = {'../../mnt/LinSigSeedN5MSweepT2.5/','../../mnt/LinSigSeedN5MSweep/'};
+    readDirs = {'../../mnt/5partIpoptMsweep/','../../mnt/5partAmoebaMsweep/'};
     writeDirectory = 'Plots/5partAnalysis/';
     
     set(0, 'DefaultTextInterpreter', 'latex');
@@ -27,10 +25,19 @@ function main()
     set(0, 'defaultAxesFontSize',12);
     
     %% plot fidelity vs basis size
-    basisData = processData(readDirs,Mlist,prefix);
-    legtext = {'test1','test2'};
+%     [Mlist , prefix] = extractBasisSize(readDirs);
+
+    Mlist = {5:2:35 , 5:2:35};
+    prefixnum = [853048:853063 ; 852915:852930];
+    for j = 1:size(prefixnum,1)
+        for i = 1:size(prefixnum,2)
+           prefix{j,i} = num2str(prefixnum(j,i)); 
+        end
+    end
     
-    % plot data
+    basisData = processData(readDirs,Mlist,prefix);
+    legtext = {'Interior Point','Nelder-Mead'};    
+    
     fig = makeBasisFidelityPlot(basisData,legtext);
         
     % save figure 
@@ -87,6 +94,8 @@ end
 
 function [Mlist , prefix] = extractBasisSize(readDirs)
 
+    
+
     for j = 1:length(readDirs)
         readDirectory = readDirs{j};
         searchstr = [readDirectory '*ProgressCache.txt'];
@@ -101,7 +110,7 @@ function [Mlist , prefix] = extractBasisSize(readDirs)
             Mtmp        = CacheData(1,end);
             
             if ismember(Mtmp, M)
-                M(l)            = Mtmp;
+                M               = [M , Mtmp];
                 unsortprefix{l} = strtok(filename,'_');
                 l               = l+1;
             end
@@ -110,7 +119,7 @@ function [Mlist , prefix] = extractBasisSize(readDirs)
         [sortM , index] = sort(M);
         Mlist{j} = sortM;
         for i = 1:length(M)
-            prefix{j,i} = unsortprefix{index(i)};
+            prefix{j,i} = unsortprefix{index(i)}
         end
         
     end
@@ -162,14 +171,13 @@ function fig = makeBasisFidelityPlot(data,legendEntries)
     hold on
     box on
     for i = 1:(size(data,2))/5
+        M       = data(:,1 + (i-1)*5);
         algdata = data(:,(2+(i-1)*5):(i*5));
         color   = co(i,:);
         
         plot(M,1-algdata(:,4),'Linewidth',2,'Color',color);
     end
     
-    xlabel('Basis Size $M$')
-    ylabel('Infidelity $1-F$')
     limsy=get(gca,'YLim');
     set(gca,'Ylim',[1e-4 0.8*1e-1]);
     yticks([1e-4 1e-3 1e-2])
@@ -185,6 +193,8 @@ function fig = makeBasisFidelityPlot(data,legendEntries)
     subpos = get(sub(2), 'Position');
     set(sub(2), 'position', [subpos(1), subpos(2), subpos(3), subpos(4)*0.5] );
     
+    xlabel('Basis Size $M$','FontSize',12)
+    ylabel('$1-F$','FontSize',12)
     
     annotation(gcf,'textbox',...
     [0.122304084595696 0.873777279000283 0.0305186246418337 0.0547703180212016],...

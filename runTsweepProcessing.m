@@ -1,7 +1,7 @@
 function main()
     clear all; close all; clc;
 
-    readDirs = {'../../mnt/5partIpopt/' , '../../mnt/5partAmoeba/'};
+    readDirs = {'../../mnt/5partIpopt/' , '../../mnt/5partAmoeba2/'};
     writeDirectory = 'Plots/5partAnalysis/';
     
     set(0, 'DefaultTextInterpreter', 'latex');
@@ -18,42 +18,108 @@ function main()
     %% plot fidelity vs duration
 
     legEntries = {'Interior Point','Nelder-Mead'};
-%     [fidelityData , durIDs] = processFidelityData(readDirs,durations);
-%     FDfig = makeCompFidelityPlot(fidelityData,legEntries);
-%     
-%     % save figure 
-%     figname = [writeDirectory 'FidelityDuration'];
-%     FDfig.PaperPositionMode = 'auto';
-%     fig_pos = FDfig.PaperPosition;
-%     FDfig.PaperSize = [fig_pos(3) fig_pos(4)];
-%     print(FDfig,figname,'-dpdf','-bestfit') 
+    [fidelityData , durIDs] = processFidelityData(readDirs,durations);
+    FDfig = makeCompFidelityPlot(fidelityData,legEntries);
+    
+    % save figure 
+    figname = [writeDirectory 'FidelityDuration'];
+    FDfig.PaperPositionMode = 'auto';
+    fig_pos = FDfig.PaperPosition;
+    FDfig.PaperSize = [fig_pos(3) fig_pos(4)];
+    print(FDfig,figname,'-dpdf','-bestfit') 
     
     %% plot cost vs Npropagations
-    durIDs =    {'../../mnt/5partIpopt/837422', '../../mnt/5partAmoeba/828324'; ...
-                 '../../mnt/5partIpopt/837529', '../../mnt/5partAmoeba/828334'; ...
-                 '../../mnt/5partIpopt/837539', '../../mnt/5partAmoeba/828381'; ...
-                 '../../mnt/5partIpopt/837549', '../../mnt/5partAmoeba/828391'}
 
-%     durIDs =    { '../../../mnt/5partAmoeba/828324'; ...
-%                   '../../../mnt/5partAmoeba/828334'; ...
-%                   '../../../mnt/5partAmoeba/828381'; ...
-%                   '../../../mnt/5partAmoeba/828391'}
-%               
-%     readDirs = { '../../../mnt/5partAmoeba/'};
-%     legEntries = {'Nelder-Mead'};
-%     commulativeNprop = 1;
-
+    progfig = figure;
+    Nrows = 2;
+    Ncols = 2;
+    rowylims = [2.5*10^(-3)     , 4*10^(-1) ; ...
+                5*10^(-4)       , 0.15 ];
+            
+    rowyt = {[10^(-2) , 10^(-1)] , [10^(-3) , 10^(-2) , 10^(-1)]};
+            
+    xt  = linspace(0,maxprop,5);
+    xtl = sprintfc('%d',xt);    
+    % plot data in NrxNc grid and andjust axis, legends, etc.
+    
     for i = 1:length(durations)
+        subaxis(Nrows,Ncols,i,'SpacingVert',0,'SpacingHoriz',0.015)
         progressData    = processProgressData(readDirs,durIDs(i,:),commulativeNprop,maxprop);
-        progfig         = makeProgressPlot(progressData,legEntries,maxprop);
+        progplot        = makeProgressPlot(progressData,legEntries,maxprop);
+
+        set(gca,'Ylim',rowylims(ceil(i/Ncols),:)) %set ylim of given row
+        legend(gca,'Location','SouthEast')
+        xticks(xt)
+        xticklabels(xtl)
+        yticks(rowyt{ceil(i/Ncols)})
+%         ytl = sprintfc('%d',rowyt{ceil(i/Ncols)});
+%         yticklabels(ytl)
         
-        % save figure 
-        figname = [writeDirectory 'CostProgressT' num2str(durations(i))];
-        progfig.PaperPositionMode = 'auto';
-        fig_pos = progfig.PaperPosition;
-        progfig.PaperSize = [fig_pos(3) fig_pos(4)];
-        print(progfig,figname,'-dpdf','-bestfit') 
-    end  
+        if mod(i,Ncols) ~= 0 % remove last xtick to make room for next column
+            xticklabels(xtl(1:end-1))
+        end
+        if mod(i,Ncols) ~= 1 %remove y axis from all but first column of plot
+           set(gca,'YLabel',[]);
+           set(gca,'YTickLabel',[]);
+        end
+        if length(durations)-i >= Ncols %remove x axis for all but bottom row
+            set(gca,'XLabel',[]);
+            set(gca,'XTickLabel',[]);
+        end
+        if i~= 1 %only lengend on first subfigure
+            legend(gca,'off')
+        end
+        
+        ax = gca;
+        ax.YGrid = 'on';
+        ax.XGrid = 'on';
+        ax.YMinorGrid = 'off';
+        
+    end 
+    
+     % add subfigure labelling
+    annotation(gcf,'textbox',...
+    [0.0942965657987035 0.846951882174887 0.0305186246418337 0.0547703180212017],...
+    'String','(\textbf{a})$\; \; T = 1$',...
+    'LineStyle','none',...
+    'Interpreter','latex',...
+    'FontWeight','bold',...
+    'FontSize',14,...
+    'FitBoxToText','off');
+
+    annotation(gcf,'textbox',...
+    [0.501247693618254 0.846951882174887 0.0305186246418337 0.0547703180212016],...
+    'String','(\textbf{b})$\; \; T = 2$',...
+    'LineStyle','none',...
+    'Interpreter','latex',...
+    'FontWeight','bold',...
+    'FontSize',14,...
+    'FitBoxToText','off');
+
+    annotation(gcf,'textbox',...
+    [0.0942965657987035 0.443067421380556 0.0305186246418337 0.0547703180212016],...
+    'String','(\textbf{c})$\; \; T = 3$',...
+    'LineStyle','none',...
+    'Interpreter','latex',...
+    'FontWeight','bold',...
+    'FontSize',14,...
+    'FitBoxToText','off');
+
+    annotation(gcf,'textbox',...
+    [0.501247693618254 0.443067421380556 0.0305186246418337 0.0547703180212016],...
+    'String','(\textbf{d})$\; \; T = 4$',...
+    'LineStyle','none',...
+    'Interpreter','latex',...
+    'FontWeight','bold',...
+    'FontSize',14,...
+    'FitBoxToText','off');
+
+    % save figure 
+    figname = [writeDirectory 'CostProgress'];
+    progfig.PaperPositionMode = 'auto';
+    fig_pos = progfig.PaperPosition;
+    progfig.PaperSize = [fig_pos(3) fig_pos(4)];
+    print(progfig,figname,'-dpdf','-bestfit') 
 
 end
 

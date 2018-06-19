@@ -1,7 +1,7 @@
 function main()
     close all; clear all; clc;
 
-    datadir = 'Data/';
+    datadir = 'Data/CorrelationData/';
     types = {'Exp' , 'Quench'};
     typenames = {'Exponential Ramp','Abrupt Quench'};
     time = 0:0.005:3;
@@ -120,8 +120,17 @@ function main()
     print(fig,figname,'-dpdf','-bestfit') 
 
     %% plot light cone
-    figure
-    plotLightCone(datadir,types{2},time,minr,maxr)
+    fig = figure;
+    plotLightCone(datadir,types{2},time,2,maxr);
+    
+    % save figure 
+    figname = ['Plots/' 'CorrelationLightCone'];
+    pos=get(fig, 'Position');
+    set(fig, 'Position', [pos(1), pos(2), pos(3), pos(4)*0.65]);
+    fig.PaperPositionMode = 'auto';
+    fig_pos = fig.PaperPosition;
+    fig.PaperSize = [fig_pos(3) fig_pos(4)];
+    print(fig,figname,'-dpdf','-bestfit') 
 
 end
 
@@ -187,17 +196,21 @@ function h = plotLightCone(dir,type,time,minr,maxr)
 
     filename = [dir 'DensityDensityCorr_' type '.txt'];
     data = dlmread(filename);
+    data = data(:,2:end);
     
-    dur = ceil(length(time)/2);
+    dur = ceil(length(time)/1.5);
     
     r = minr:maxr;
-    h = imagesc('XData',r,'YData',time(1:dur),'CData',data(1:dur,:));
-    ylim([time(1) , time(end)])
+    h = imagesc('XData',r,'YData',time(1:dur),'CData',data(1:dur,:)./data(1,:));
+    hold on
+    plot([r(1)-0.5 , r(end)+0.5], [0.3 1.3],'k--','LineWidth',1.5)
+    ylim([time(1) , time(dur)])
     xlim([r(1)-0.5 , r(end)+0.5])
-    yticks(r)
+    xticks(r)
     
     ylabel('Time $t$ $[ J^{-1} ]$')
     xlabel('Distance $r$')
 
     colorbar
+    caxis([0.97 1.01])
 end
